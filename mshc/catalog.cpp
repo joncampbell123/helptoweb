@@ -14,7 +14,7 @@ using namespace std;
 static void chomp(char *s) {
     char *e = s + strlen(s) - 1;
 
-    while (e > s && (*e == '\r' || *e == '\n')) *e-- = 0;
+    while (e >= s && (*e == '\r' || *e == '\n')) *e-- = 0;
 }
 
 FILE *cat_fp = NULL;
