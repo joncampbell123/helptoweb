@@ -136,6 +136,19 @@ void xlateLinks(xmlNodePtr node,const char *dst) {
                 }
             }
         }
+        else if (!xmlStrcmp(node->name,(const xmlChar*)"head")) {
+            /* need to add a meta tag that clarifies the document is UTF-8 */
+            xmlNodePtr charset;
+
+            charset = xmlNewNode(NULL,(const xmlChar*)"meta");
+            xmlNewProp(charset,(const xmlChar*)"charset",(const xmlChar*)"UTF-8");
+            xmlAddChild(node,charset);
+
+            charset = xmlNewNode(NULL,(const xmlChar*)"meta");
+            xmlNewProp(charset,(const xmlChar*)"http-equiv",(const xmlChar*)"Content-Type");
+            xmlNewProp(charset,(const xmlChar*)"content",(const xmlChar*)"text/html; charset=utf-8");
+            xmlAddChild(node,charset);
+        }
 
         if (node->children)
             xlateLinks(node->children,dst);
