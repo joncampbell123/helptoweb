@@ -51,7 +51,7 @@ string replaceLink(string &url) {
     return r;
 }
 
-void xlateLinks(xmlNodePtr node) {
+void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
     while (node != NULL) {
         if (!xmlStrcmp(node->name,(const xmlChar*)"a")) {
             {
@@ -85,9 +85,41 @@ void xlateLinks(xmlNodePtr node) {
                 }
             }
         }
- 
+        else if (!xmlStrcmp(node->name,(const xmlChar*)"style")) {
+            xmlChar *val;
+
+            val = xmlNodeListGetString(doc, node->xmlChildrenNode, 1);
+            if (val != NULL) {
+                char *s = (char*)val;
+                string nval = s;
+
+                while (*s == ' ' || *s == '\t') s++;
+
+                /* MSDN documentation: @import url(...) */
+                if (!strncasecmp((char*)s,"@import url(",12)) {
+                    nval = lowercase(s);
+                }
+
+                xmlFree(val);
+                xmlNodeSetContent(node,(const xmlChar*)nval.c_str());
+            }
+        }
+        else if (!xmlStrcmp(node->name,(const xmlChar*)"head")) {
+            /* need to add a meta tag that clarifies the document is UTF-8 */
+            xmlNodePtr charset;
+
+            charset = xmlNewNode(NULL,(const xmlChar*)"meta");
+            xmlNewProp(charset,(const xmlChar*)"charset",(const xmlChar*)"UTF-8");
+            xmlAddChild(node,charset);
+
+            charset = xmlNewNode(NULL,(const xmlChar*)"meta");
+            xmlNewProp(charset,(const xmlChar*)"http-equiv",(const xmlChar*)"Content-Type");
+            xmlNewProp(charset,(const xmlChar*)"content",(const xmlChar*)"text/html; charset=utf-8");
+            xmlAddChild(node,charset);
+        }
+
         if (node->children)
-            xlateLinks(node->children);
+            xlateLinks(doc,node->children);
 
         node = node->next;
     }
@@ -105,10 +137,13 @@ void copytranslate(const char *src) {
     if (doc == NULL) return;
 
     html = xmlDocGetRootElement(doc);
-    if (html != NULL) xlateLinks(html);
+    if (html != NULL) xlateLinks(doc,html);
 
     xmlSaveFileEnc(tmp.c_str(),doc,"UTF-8");
     xmlFreeDoc(doc);
+
+    unlink(src);
+    rename(tmp.c_str(),src);
 }
 
 int main() {
