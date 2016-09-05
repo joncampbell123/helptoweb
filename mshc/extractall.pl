@@ -39,7 +39,7 @@ for ($i=0;$i < @mshc;$i++) {
     print "Extracting $path... ($name)\n";
 
     system("rm -Rf .tmp && mkdir -p .tmp") == 0 || die;
-    system("cd .tmp && unzip -- \"".shellesc($path)."\"") == 0 || die;
+    system("cd .tmp && unzip -- \"".shellesc($path)."\" >/dev/null") == 0 || die;
 
     open(LS,"cd .tmp && find |") || die;
     while (my $elem = <LS>) {
