@@ -49,12 +49,13 @@ for ($i=0;$i < @mshc;$i++) {
         die unless -e $felem;
         next unless -f $felem;
 
-        $nelem = "FINAL/$name";
+        $nelem = "FINAL/".lc($name);
         if (!( -d $nelem )) {
             system("mkdir -p \"".shellesc($nelem)."\"") == 0 || die;
         }
 
-        $nelem = "FINAL/$name/$elem";
+        $nelem = "FINAL/".lc($name)."/".lc($elem);
+        die if -e $nelem;
         rename($felem,$nelem) || die;
     }
     close(LS);
