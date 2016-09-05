@@ -119,6 +119,36 @@ string replaceLink(string &url,const char *dst) {
 }
 
 void xlateLinks(xmlNodePtr node,const char *dst) {
+
+    {
+        bool again = false;
+        xmlNodePtr x;
+
+        do {
+            again = false;
+            for (x=node;x;x=x->next) {
+                if (!strcasecmp((char*)x->name,"CodeSnippet")) {
+                    xmlNodePtr np;
+                    xmlNodePtr content;
+
+                    np = xmlNewNode(NULL,(const xmlChar*)"code");
+                    xmlSetProp(np,(const xmlChar*)"style",(const xmlChar*)"white-space: pre; display: block;");
+
+                    xmlAddPrevSibling(x,np);
+                    xmlUnlinkNode(x);
+
+                    content = x->children;
+                    xmlUnlinkNode(content);
+                    xmlAddChild(np,content);
+
+                    xmlFreeNode(x);
+                    again = true;
+                    break;
+                }
+            }
+        } while (again);
+    }
+
     while (node != NULL) {
         if (!xmlStrcmp(node->name,(const xmlChar*)"a")) {
             {
