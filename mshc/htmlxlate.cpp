@@ -37,6 +37,18 @@ unsigned char xdigit2(const char c) {
     return 0;
 }
 
+string lowercase(string f) {
+    string r;
+    const char *s;
+
+    s = f.c_str();
+    while (*s != 0) {
+        r += tolower(*s++);
+    }
+
+    return r;
+}
+
 string htmlunescape(const char *s) {
     string r;
 
@@ -61,24 +73,42 @@ string htmlunescape(const char *s) {
     return r;
 }
 
-string final2html(string &f) {
-    string r = f;
+string final2html(string &f,const char *dst) {
+    string r = f,prefix;
+
+    {
+        while (!strncmp(dst,"./",2))
+            dst += 2;
+
+        while (*dst != 0) {
+            if (*dst == '/') {
+                while (*dst == '/') dst++;
+
+                if (*dst != 0)
+                    prefix += "../";
+            }
+            else {
+                dst++;
+            }
+        }
+    }
 
     if (!strncmp(f.c_str(),"./FINAL/",8)) {
-        r = "./HTML/";
+        r = prefix;
+        r += "./HTML/";
         r += f.c_str()+8;
     }
 
     return r;
 }
 
-string replaceLink(string &url) {
+string replaceLink(string &url,const char *dst) {
     if (!url.empty() && !strncmp(url.c_str(),"ms-xhelp:///?Id=",16)) {
-        string unescaped = htmlunescape(url.c_str()+16);
+        string unescaped = lowercase(htmlunescape(url.c_str()+16));
         map<string,string>::iterator i = catalogToFile.find(unescaped);
         if (i != catalogToFile.end()) {
             /* replace the link */
-            return final2html(i->second);
+            return final2html(i->second,dst);
         }
         else {
             fprintf(stderr,"  Unknown ms-xhelp '%s'\n",unescaped.c_str());
@@ -88,7 +118,7 @@ string replaceLink(string &url) {
     return "";
 }
 
-void xlateLinks(xmlNodePtr node) {
+void xlateLinks(xmlNodePtr node,const char *dst) {
     while (node != NULL) {
         if (!xmlStrcmp(node->name,(const xmlChar*)"a")) {
             {
@@ -100,7 +130,7 @@ void xlateLinks(xmlNodePtr node) {
                     string newurl;
                     xmlFree(xp);
 
-                    newurl = replaceLink(url);
+                    newurl = replaceLink(url,dst);
                     if (!newurl.empty())
                         xmlSetProp(node,(const xmlChar*)"href",(const xmlChar*)newurl.c_str());
                 }
@@ -108,7 +138,7 @@ void xlateLinks(xmlNodePtr node) {
         }
 
         if (node->children)
-            xlateLinks(node->children);
+            xlateLinks(node->children,dst);
 
         node = node->next;
     }
@@ -122,7 +152,7 @@ void copytranslate(const char *src,const char *dst) {
     if (doc == NULL) return;
 
     html = xmlDocGetRootElement(doc);
-    if (html != NULL) xlateLinks(html);
+    if (html != NULL) xlateLinks(html,dst);
 
     xmlSaveFileEnc(dst,doc,"UTF-8");
     xmlFreeDoc(doc);
@@ -177,6 +207,13 @@ int main() {
             filename = line;
         }
         else if (!strncmp(line,"-id:",4)) {
+            {
+                char *s = line+4;
+                while (*s != 0) {
+                    *s = tolower(*s);
+                    s++;
+                }
+            }
             fileid = line+4;
         }
     }
@@ -200,7 +237,7 @@ int main() {
 
             if (S_ISREG(st.st_mode)) {
                 if (!strcmp(ext,".htm") || !strcmp(ext,".html")) {
-                    printf("Translate: %s\n",line);
+//                    printf("Translate: %s\n",line);
 //                    printf("       to: %s\n",newpath.c_str());
                     copytranslate(line,newpath.c_str());
                 }
