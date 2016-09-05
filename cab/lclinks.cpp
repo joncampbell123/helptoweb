@@ -104,6 +104,37 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
                 xmlNodeSetContent(node,(const xmlChar*)nval.c_str());
             }
         }
+        else if (!xmlStrcmp(node->name,(const xmlChar*)"meta")) {
+            /* need to remove content encoding since we change it */
+            xmlChar *charset;
+            xmlChar *httpequiv;
+            xmlChar *content;
+
+            charset = xmlGetProp(node,(const xmlChar*)"charset");
+            httpequiv = xmlGetProp(node,(const xmlChar*)"http-equiv");
+            content = xmlGetProp(node,(const xmlChar*)("content"));
+
+            if (charset != NULL) {
+                // if this isn't our UTF-8 charset tag then remove it
+                if (strcasecmp((char*)charset,"UTF-8") != 0) {
+                    xmlNodePtr n = node->next;
+                    xmlUnlinkNode(node);
+                    xmlFreeNode(node);
+                    node = n;
+                    continue;
+                }
+            }
+            else if (httpequiv != NULL && content != NULL) {
+                // if this isn't our UTF-8 charset tag then remove it
+                if (strcasecmp((char*)httpequiv,"Content-Type") == 0 && strcasecmp((char*)content,"text/html; charset=utf-8") != 0) {
+                    xmlNodePtr n = node->next;
+                    xmlUnlinkNode(node);
+                    xmlFreeNode(node);
+                    node = n;
+                    continue;
+                }
+            }
+        }
         else if (!xmlStrcmp(node->name,(const xmlChar*)"head")) {
             /* need to add a meta tag that clarifies the document is UTF-8 */
             xmlNodePtr charset;
