@@ -1,3 +1,9 @@
 mshc ........ MSHC to HTML (web viewable) converter
 chm ......... CHM to HTML (web viewable) converter scripts
 
+External dependencies (mshc tools):
+  Infozip unzip utility
+
+External dependencies (chm tools):
+  chmlib / extract_chmLib utility
+
