@@ -1,3 +1,4 @@
+/* run this at the root of the extracted CHM contents directory */
 
 #include <sys/types.h>
 #include <sys/stat.h>
