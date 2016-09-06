@@ -58,6 +58,7 @@ string replaceLink(string &url) {
 }
 
 void changeSitemapsToLinks(xmlNodePtr parent_node) {
+    bool has_alink = false;
     xmlNodePtr node;
 
     for (node=parent_node;node;) {
@@ -124,6 +125,7 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
                     }
 
                     xmlAddPrevSibling(node,alink);
+                    has_alink = true;
                 }
             }
             else {
@@ -134,6 +136,17 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
             xmlUnlinkNode(node);
             xmlFreeNode(node);
             node = nn;
+        }
+        else if (!strcasecmp((char*)node->name,"a")) {
+            if (has_alink) { // here's one of Microsoft's curveballs: some HHC files have both an object and an anchor. Blah.
+                xmlNodePtr nn = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = nn;
+            }
+            else {
+                node = node->next;
+            }
         }
         else {
             changeSitemapsToLinks(node->children);
