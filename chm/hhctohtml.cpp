@@ -176,6 +176,7 @@ bool makeFramePage(void) {
 
     indexHTMLBody = xmlNewNode(NULL,(const xmlChar*)"body");
     if (indexHTMLBody == NULL) return false;
+    xmlNewProp(indexHTMLBody,(const xmlChar*)"style",(const xmlChar*)"padding: 0px; margin: 0px;");
     xmlAddChild(indexHTML,indexHTMLBody);
 
     {
@@ -183,6 +184,7 @@ bool makeFramePage(void) {
         xmlNewProp(div,(const xmlChar*)"style",(const xmlChar*)"float: left; width: 35%;");
         {
             xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"iframe");
+            xmlNewProp(a,(const xmlChar*)"frameborder",(const xmlChar*)"0");
             xmlNewProp(a,(const xmlChar*)"width",(const xmlChar*)"100%");
             xmlNewProp(a,(const xmlChar*)"height",(const xmlChar*)"100%");
             xmlNewProp(a,(const xmlChar*)"src",(const xmlChar*)"hhc_toc.htm");
@@ -198,6 +200,7 @@ bool makeFramePage(void) {
         xmlNewProp(div,(const xmlChar*)"style",(const xmlChar*)"float: left; width: 65%;");
         {
             xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"iframe");
+            xmlNewProp(a,(const xmlChar*)"frameborder",(const xmlChar*)"0");
             xmlNewProp(a,(const xmlChar*)"width",(const xmlChar*)"100%");
             xmlNewProp(a,(const xmlChar*)"height",(const xmlChar*)"100%");
             xmlNewProp(a,(const xmlChar*)"src",(const xmlChar*)mainpageurl.c_str());
