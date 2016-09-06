@@ -116,7 +116,7 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
                         xmlNewProp(alink,(const xmlChar*)"target",(const xmlChar*)"chm_contentframe");
 
                         if (mainpageurl.empty())
-                            mainpageurl = local;
+                            mainpageurl = replaceLink(local);
                     }
                     else {
                         alink = xmlNewNode(NULL,(const xmlChar*)"span");
