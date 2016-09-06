@@ -106,7 +106,6 @@ void ALinksTranslate(const char *path) {
 
         /* remove the object */
         xmlUnlinkNode(object_node);
-        xmlFreeNode(object_node);
 
         /* replace the HREF with the file.
          * make sure to tack on the anchor name. */
@@ -337,7 +336,7 @@ int main() {
         char *ext = strrchr(line,'.');
         if (ext == NULL) continue;
 
-        if (strncmp(line,"./gdi.chm/",10)) continue;
+//        if (strncmp(line,"./gdi.chm/",10)) continue;
 
         if (lstat(line,&st)) continue;
 
