@@ -3,7 +3,11 @@ chm ......... CHM to HTML (web viewable) converter scripts
 
 External dependencies (mshc tools):
   Infozip unzip utility
+  libXML2
+  Perl
 
 External dependencies (chm tools):
   chmlib / extract_chmLib utility
+  libXML2
+  Perl
 
