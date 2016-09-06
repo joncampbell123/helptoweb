@@ -233,10 +233,37 @@ void changeKeywordSitemapsToLinks(xmlNodePtr parent_node) {
                     xmlNodePtr alink,ul=NULL;
                     size_t i;
 
-                    alink = xmlNewNode(NULL,(const xmlChar*)"span");
-                    xmlNodeSetContent(alink,(const xmlChar*)keyword.c_str());
-                    xmlAddPrevSibling(node,alink);
-                    has_alink = true;
+                    /* NTS: Some HHKs have a Keyword and Local, no Name */
+                    if (name.size() == 0 && local.size() == 1) {
+                        string k_local = local[0];
+
+                        {
+                            const char *s = k_local.c_str();
+
+                            /* some HHCs use ../../ in the URL despite the fact that
+                             * from within a CHM that just refers to the root "directory" anyway
+                             * (Microsoft Speech API SDK) */
+                            while (!strncmp(s,"../",3)) s += 3;
+
+                            if (s != k_local.c_str()) {
+                                string ns = s;
+                                k_local = ns;
+                            }
+                        }
+ 
+                        alink = xmlNewNode(NULL,(const xmlChar*)"a");
+                        xmlNodeSetContent(alink,(const xmlChar*)keyword.c_str());
+                        xmlNewProp(alink,(const xmlChar*)"href",(const xmlChar*)replaceLink(k_local).c_str());
+                        xmlNewProp(alink,(const xmlChar*)"target",(const xmlChar*)"chm_contentframe");
+                        xmlAddPrevSibling(node,alink);
+                        has_alink = true;
+                   }
+                    else {
+                        alink = xmlNewNode(NULL,(const xmlChar*)"span");
+                        xmlNodeSetContent(alink,(const xmlChar*)keyword.c_str());
+                        xmlAddPrevSibling(node,alink);
+                        has_alink = true;
+                    }
 
                     for (i=0;i < name.size() && i < local.size();i++) {
                         string k_name = name[i];
