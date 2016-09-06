@@ -230,6 +230,12 @@ void changeKeywordSitemapsToLinks(xmlNodePtr parent_node) {
                     }
                 }
 
+                /* Some HHKs define Name twice, the first time the same meaning as Keyword, apparently (Microsoft SAPI 5.1 SDK) */
+                if (keyword.empty() && name.size() > local.size() && name.size() != 0) {
+                    keyword = name.front();
+                    name.erase(name.begin());
+                }
+
                 if (!keyword.empty()) {
                     xmlNodePtr alink,ul=NULL;
                     size_t i;
