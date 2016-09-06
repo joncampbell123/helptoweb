@@ -9,6 +9,7 @@
 #include <fcntl.h>
 
 #include <libxml/parser.h>
+#include <libxml/HTMLtree.h>
 #include <libxml/HTMLparser.h>
 
 #include <map>
@@ -600,13 +601,23 @@ int main() {
 
     printf("Main page: %s\n",mainpageurl.c_str());
 
-    xmlSaveFileEnc("hhc_toc.htm",indexHTMLDoc,"UTF-8");
+    {
+        FILE *fp = fopen("hhc_toc.htm","w");
+        if (fp == NULL) abort();
+        htmlDocDump(fp,indexHTMLDoc);
+        fclose(fp);
+    }
     xmlFreeDoc(indexHTMLDoc);
     indexHTMLDoc = NULL;
 
     /* make another HTML that joins the TOC with the content */
     makeFramePage();
-    xmlSaveFileEnc("hhc_index.htm",indexHTMLDoc,"UTF-8");
+    {
+        FILE *fp = fopen("hhc_index.htm","w");
+        if (fp == NULL) abort();
+        htmlDocDump(fp,indexHTMLDoc);
+        fclose(fp);
+    }
     xmlFreeDoc(indexHTMLDoc);
     indexHTMLDoc = NULL;
 
