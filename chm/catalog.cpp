@@ -1,4 +1,6 @@
 
+/* run this at the top level containing the entire CHM collection (MSDN library 6.0a) */
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
