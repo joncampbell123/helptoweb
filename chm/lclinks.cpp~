@@ -74,8 +74,8 @@ string replaceLink(string &url,const char *rpath) {
         }
 
         rfinal += r_str;
-        fprintf(stderr,"Absolute to relative: '%s' -> '%s'\n",r.c_str(),rfinal.c_str());
-//        r = rfinal;
+//        fprintf(stderr,"Absolute to relative: '%s' -> '%s'\n",r.c_str(),rfinal.c_str());
+        r = rfinal;
     }
 
     return r;
@@ -100,6 +100,22 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node,const char *rpath) {
             }
         }
         else if (!xmlStrcmp(node->name,(const xmlChar*)"img")) {
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"src");
+                if (xp != NULL) {
+                    string url = (char*)xp;
+                    string newurl;
+                    xmlFree(xp);
+
+                    newurl = replaceLink(url,rpath);
+                    if (!newurl.empty())
+                        xmlSetProp(node,(const xmlChar*)"src",(const xmlChar*)newurl.c_str());
+                }
+            }
+        }
+        else if (!xmlStrcmp(node->name,(const xmlChar*)"iframe")) {
             {
                 xmlChar *xp;
 

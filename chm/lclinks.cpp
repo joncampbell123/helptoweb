@@ -115,6 +115,22 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node,const char *rpath) {
                 }
             }
         }
+        else if (!xmlStrcmp(node->name,(const xmlChar*)"iframe")) {
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"src");
+                if (xp != NULL) {
+                    string url = (char*)xp;
+                    string newurl;
+                    xmlFree(xp);
+
+                    newurl = replaceLink(url,rpath);
+                    if (!newurl.empty())
+                        xmlSetProp(node,(const xmlChar*)"src",(const xmlChar*)newurl.c_str());
+                }
+            }
+        }
         else if (!xmlStrcmp(node->name,(const xmlChar*)"style")) {
             xmlChar *val;
 
