@@ -241,10 +241,7 @@ bool makeFramePage(void) {
     return true;
 }
 
-bool parseHHC(const char *path) {
-    xmlNodePtr html,node;
-    xmlDocPtr doc;
-
+bool init_HTML(void) {
     indexHTMLDoc = xmlNewDoc((const xmlChar*)"1.0");
     if (indexHTMLDoc == NULL) return false;
 
@@ -272,6 +269,68 @@ bool parseHHC(const char *path) {
     indexHTMLBody = xmlNewNode(NULL,(const xmlChar*)"body");
     if (indexHTMLBody == NULL) return false;
     xmlAddChild(indexHTML,indexHTMLBody);
+
+    return true;
+}
+
+bool parseHHK(const char *path) {
+    xmlNodePtr html,node;
+    xmlDocPtr doc;
+
+    /* <HTML>
+     *   <UL>
+     *    <LI><OBJECT type="text/sitemap">
+     *      <PARAM name="Name" value="COM">
+     *      </OBJECT>
+     *      <UL>
+     *        <LI><OBJECT type="text/sitemap">
+     *          <PARAM name="Name" value="Legal Information">
+     *          <PARAM name="Local" value="devdoc/live/com/legalole_6q3y.htm">
+     *        </OBJECT>
+     *      </UL>
+     *   </UL>
+     * </HTML> */
+
+    doc = htmlParseFile(path,NULL);
+    if (doc == NULL) return false;
+
+    html = xmlDocGetRootElement(doc);
+    if (html != NULL) {
+        xmlNodePtr body = NULL;
+
+        /* libxml2 automatically makes a body even if HHC files don't have one */
+        for (node=html->children;node;node=node->next) {
+            if (!strcasecmp((char*)node->name,"body")) {
+                body = node;
+                break;
+            }
+        }
+
+        if (body == NULL)
+            body = html;
+
+        /* copy only the UL or OL nodes */
+        for (node=body->children;node;node=node->next) {
+            if (!strcasecmp((char*)node->name,"ul") || !strcasecmp((char*)node->name,"ol")) {
+                xmlNodePtr copy = xmlCopyNode(node,1);
+                if (copy != NULL)
+                    xmlAddChild(indexHTMLBody,copy);
+                else
+                    fprintf(stderr,"Failed to copy link node\n");
+            }
+            else {
+                fprintf(stderr,"Skipping %s\n",(char*)node->name);
+            }
+        }
+    }
+
+    xmlFreeDoc(doc);
+    return true;
+}
+
+bool parseHHC(const char *path) {
+    xmlNodePtr html,node;
+    xmlDocPtr doc;
 
     /* <HTML>
      *   <UL>
@@ -359,8 +418,21 @@ int main() {
     printf("HHC file: %s\n",hhc_file.c_str());
     printf("HHK file: %s\n",hhk_file.c_str());
 
+    if (!init_HTML())
+        return 1;
+
     if (!parseHHC(hhc_file.c_str()))
         return 1;
+
+    if (!hhk_file.empty()) {
+        {
+            xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"hr");
+            xmlAddChild(indexHTMLBody,a);
+        }
+
+        if (!parseHHK(hhk_file.c_str()))
+            return 1;
+    }
 
     /* now, change the OBJECTs to links */
     changeSitemapsToLinks();
