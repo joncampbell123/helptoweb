@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include <libxml/parser.h>
+#include <libxml/HTMLtree.h>
 #include <libxml/HTMLparser.h>
 
 #include <map>
@@ -248,7 +249,12 @@ void copytranslate(const char *src) {
     html = xmlDocGetRootElement(doc);
     if (html != NULL) xlateLinks(doc,html,src);
 
-    xmlSaveFileEnc(tmp.c_str(),doc,"UTF-8");
+    {
+        FILE *fp = fopen(tmp.c_str(),"w");
+        if (fp == NULL) abort();
+        htmlDocDump(fp,doc);
+        fclose(fp);
+    }
     xmlFreeDoc(doc);
 
     unlink(src);
