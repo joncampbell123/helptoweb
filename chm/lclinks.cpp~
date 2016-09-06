@@ -35,7 +35,7 @@ string lowercase(string f) {
     return r;
 }
 
-string replaceLink(string &url) {
+string replaceLink(string &url,const char *rpath) {
     const char *s = url.c_str();
     const char *h = strchr(s,'#');
     string r;
@@ -48,10 +48,40 @@ string replaceLink(string &url) {
         r += lowercase(s);
     }
 
+    /* convert absolute paths to relative.
+     * some CHMs do use absolute paths (Microsoft DXMedia, MSDN 6.0a library) */
+    if (r.length() > 0 && r.at(0) == '/') {
+        const char *r_str = r.c_str();
+        while (*r_str == '/') r_str++;
+
+        const char *r_scan = rpath;
+        string rfinal;
+
+        while (*r_scan != 0) {
+            if (!strncmp(r_scan,"./",2)) {
+                r_scan += 2;
+                continue;
+            }
+            if (*r_scan != '/') {
+                r_scan++;
+                continue;
+            }
+
+            rfinal += "../";
+
+            while (*r_scan == '/')
+                r_scan++;
+        }
+
+        rfinal += r_str;
+        fprintf(stderr,"Absolute to relative: '%s' -> '%s'\n",r.c_str(),rfinal.c_str());
+//        r = rfinal;
+    }
+
     return r;
 }
 
-void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
+void xlateLinks(xmlDocPtr doc,xmlNodePtr node,const char *rpath) {
     while (node != NULL) {
         if (!xmlStrcmp(node->name,(const xmlChar*)"a")) {
             {
@@ -63,7 +93,7 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
                     string newurl;
                     xmlFree(xp);
 
-                    newurl = replaceLink(url);
+                    newurl = replaceLink(url,rpath);
                     if (!newurl.empty())
                         xmlSetProp(node,(const xmlChar*)"href",(const xmlChar*)newurl.c_str());
                 }
@@ -79,7 +109,7 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
                     string newurl;
                     xmlFree(xp);
 
-                    newurl = replaceLink(url);
+                    newurl = replaceLink(url,rpath);
                     if (!newurl.empty())
                         xmlSetProp(node,(const xmlChar*)"src",(const xmlChar*)newurl.c_str());
                 }
@@ -126,7 +156,7 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
             }
             else if (httpequiv != NULL && content != NULL) {
                 // if this isn't our UTF-8 charset tag then remove it
-                if (strcasecmp((char*)charset,"Content-Type") == 0 && strcasecmp((char*)content,"text/html; charset=utf-8") != 0) {
+                if (strcasecmp((char*)httpequiv,"Content-Type") == 0 && strcasecmp((char*)content,"text/html; charset=utf-8") != 0) {
                     xmlNodePtr n = node->next;
                     xmlUnlinkNode(node);
                     xmlFreeNode(node);
@@ -150,7 +180,7 @@ void xlateLinks(xmlDocPtr doc,xmlNodePtr node) {
         }
 
         if (node->children)
-            xlateLinks(doc,node->children);
+            xlateLinks(doc,node->children,rpath);
 
         node = node->next;
     }
@@ -168,7 +198,7 @@ void copytranslate(const char *src) {
     if (doc == NULL) return;
 
     html = xmlDocGetRootElement(doc);
-    if (html != NULL) xlateLinks(doc,html);
+    if (html != NULL) xlateLinks(doc,html,src);
 
     xmlSaveFileEnc(tmp.c_str(),doc,"UTF-8");
     xmlFreeDoc(doc);
