@@ -13,6 +13,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -171,6 +172,136 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
 
 void changeSitemapsToLinks(void) {
     changeSitemapsToLinks(indexHTMLBody);
+}
+
+void changeKeywordSitemapsToLinks(xmlNodePtr parent_node) {
+    bool has_alink = false;
+    xmlNodePtr node;
+
+    for (node=parent_node;node;) {
+        if (!strcasecmp((char*)node->name,"object")) {
+            string type;
+
+            {
+                xmlChar *xp;
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"type");
+                if (xp != NULL) {
+                    type = (char*)xp;
+                    xmlFree(xp);
+                }
+            }
+
+            if (type == "text/sitemap") {
+                vector<string> name,local;
+                string keyword,see_also;
+                xmlNodePtr par;
+
+                for (par=node->children;par;par=par->next) {
+                    if (!strcasecmp((char*)par->name,"param")) {
+                        string p_name,p_value;
+
+                        {
+                            xmlChar *xp;
+                            xp = xmlGetNoNsProp(par,(const xmlChar*)"name");
+                            if (xp != NULL) {
+                                p_name = (char*)xp;
+                                xmlFree(xp);
+                            }
+                        }
+
+                        {
+                            xmlChar *xp;
+                            xp = xmlGetNoNsProp(par,(const xmlChar*)"value");
+                            if (xp != NULL) {
+                                p_value = (char*)xp;
+                                xmlFree(xp);
+                            }
+                        }
+
+                        if (p_name == "Name")
+                            name.push_back(p_value);
+                        else if (p_name == "Local")
+                            local.push_back(p_value);
+                        else if (p_name == "Keyword")
+                            keyword = p_value;
+                        else if (p_name == "See Also")
+                            see_also = p_value;
+                    }
+                }
+
+                if (!keyword.empty()) {
+                    xmlNodePtr alink,ul=NULL;
+                    size_t i;
+
+                    alink = xmlNewNode(NULL,(const xmlChar*)"span");
+                    xmlNodeSetContent(alink,(const xmlChar*)keyword.c_str());
+                    xmlAddPrevSibling(node,alink);
+                    has_alink = true;
+
+                    for (i=0;i < name.size() && i < local.size();i++) {
+                        string k_name = name[i];
+                        string k_local = local[i];
+                        xmlNodePtr a,li;
+
+                        if (i == 0) {
+                            ul = xmlNewNode(NULL,(const xmlChar*)"ul");
+                            xmlAddChild(alink,ul);
+                        }
+
+                        li = xmlNewNode(NULL,(const xmlChar*)"li");
+                        xmlAddChild(ul,li);
+
+                        {
+                            const char *s = k_local.c_str();
+
+                            /* some HHCs use ../../ in the URL despite the fact that
+                             * from within a CHM that just refers to the root "directory" anyway
+                             * (Microsoft Speech API SDK) */
+                            while (!strncmp(s,"../",3)) s += 3;
+
+                            if (s != k_local.c_str()) {
+                                string ns = s;
+                                k_local = ns;
+                            }
+                        }
+ 
+                        a = xmlNewNode(NULL,(const xmlChar*)"a");
+                        xmlNodeSetContent(a,(const xmlChar*)k_name.c_str());
+                        xmlNewProp(a,(const xmlChar*)"href",(const xmlChar*)replaceLink(k_local).c_str());
+                        xmlNewProp(a,(const xmlChar*)"target",(const xmlChar*)"chm_contentframe");
+                        xmlAddChild(li,a);
+                    }
+                }
+            }
+            else {
+                fprintf(stderr,"Ignoring OBJECT type '%s'\n",type.c_str());
+            }
+
+            xmlNodePtr nn = node->next;
+            xmlUnlinkNode(node);
+            xmlFreeNode(node);
+            node = nn;
+        }
+        else if (!strcasecmp((char*)node->name,"a")) {
+            if (has_alink) { // here's one of Microsoft's curveballs: some HHC files have both an object and an anchor. Blah.
+                xmlNodePtr nn = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = nn;
+            }
+            else {
+                node = node->next;
+            }
+        }
+        else {
+            changeKeywordSitemapsToLinks(node->children);
+            node = node->next;
+        }
+    }
+}
+
+void changeKeywordSitemapsToLinks(void) {
+    changeKeywordSitemapsToLinks(indexHTMLBody);
 }
 
 bool makeFramePage(void) {
@@ -424,6 +555,9 @@ int main() {
     if (!parseHHC(hhc_file.c_str()))
         return 1;
 
+    /* now, change the OBJECTs to links */
+    changeSitemapsToLinks();
+
     if (!hhk_file.empty()) {
         {
             xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"hr");
@@ -432,10 +566,10 @@ int main() {
 
         if (!parseHHK(hhk_file.c_str()))
             return 1;
-    }
 
-    /* now, change the OBJECTs to links */
-    changeSitemapsToLinks();
+        /* now, change the OBJECTs to links */
+        changeKeywordSitemapsToLinks();
+    }
 
     printf("Main page: %s\n",mainpageurl.c_str());
 
