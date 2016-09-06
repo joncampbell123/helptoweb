@@ -22,6 +22,8 @@ static void chomp(char *s) {
     while (e >= s && (*e == '\r' || *e == '\n')) *e-- = 0;
 }
 
+string mainpageurl;
+
 xmlDocPtr indexHTMLDoc = NULL;
 xmlNodePtr indexHTML = NULL;
 xmlNodePtr indexHTMLHead = NULL;
@@ -111,6 +113,10 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
                         alink = xmlNewNode(NULL,(const xmlChar*)"a");
                         xmlNodeSetContent(alink,(const xmlChar*)name.c_str());
                         xmlNewProp(alink,(const xmlChar*)"href",(const xmlChar*)replaceLink(local).c_str());
+                        xmlNewProp(alink,(const xmlChar*)"target",(const xmlChar*)"chm_contentframe");
+
+                        if (mainpageurl.empty())
+                            mainpageurl = local;
                     }
                     else {
                         alink = xmlNewNode(NULL,(const xmlChar*)"span");
@@ -138,6 +144,71 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
 
 void changeSitemapsToLinks(void) {
     changeSitemapsToLinks(indexHTMLBody);
+}
+
+bool makeFramePage(void) {
+    xmlNodePtr html,node;
+    xmlDocPtr doc;
+
+    indexHTMLDoc = xmlNewDoc((const xmlChar*)"1.0");
+    if (indexHTMLDoc == NULL) return false;
+
+    indexHTML = xmlNewNode(NULL,(const xmlChar*)"html");
+    if (indexHTML == NULL) return false;
+    xmlDocSetRootElement(indexHTMLDoc,indexHTML);
+
+    indexHTMLHead = xmlNewNode(NULL,(const xmlChar*)"head");
+    if (indexHTMLHead == NULL) return false;
+    xmlAddChild(indexHTML,indexHTMLHead);
+
+    {
+        xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"meta");
+        xmlNewProp(a,(const xmlChar*)"http-equiv",(const xmlChar*)"Content-Type");
+        xmlNewProp(a,(const xmlChar*)"content",(const xmlChar*)"text/html; charset=UTF-8");
+        xmlAddChild(indexHTMLHead,a);
+    }
+
+    {
+        xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"meta");
+        xmlNewProp(a,(const xmlChar*)"charset",(const xmlChar*)"UTF-8");
+        xmlAddChild(indexHTMLHead,a);
+    }
+
+    indexHTMLBody = xmlNewNode(NULL,(const xmlChar*)"body");
+    if (indexHTMLBody == NULL) return false;
+    xmlAddChild(indexHTML,indexHTMLBody);
+
+    {
+        xmlNodePtr div = xmlNewNode(NULL,(const xmlChar*)"div");
+        xmlNewProp(div,(const xmlChar*)"style",(const xmlChar*)"float: left; width: 35%;");
+        {
+            xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"iframe");
+            xmlNewProp(a,(const xmlChar*)"width",(const xmlChar*)"100%");
+            xmlNewProp(a,(const xmlChar*)"height",(const xmlChar*)"100%");
+            xmlNewProp(a,(const xmlChar*)"src",(const xmlChar*)"hhc_toc.htm");
+            xmlNewProp(a,(const xmlChar*)"name",(const xmlChar*)"chm_tocframe");
+            xmlNodeSetContent(a,(const xmlChar*)"Your browser does not support IFRAMEs");
+            xmlAddChild(div,a);
+        }
+        xmlAddChild(indexHTMLBody,div);
+    }
+
+    if (!mainpageurl.empty()) {
+        xmlNodePtr div = xmlNewNode(NULL,(const xmlChar*)"div");
+        xmlNewProp(div,(const xmlChar*)"style",(const xmlChar*)"float: left; width: 65%;");
+        {
+            xmlNodePtr a = xmlNewNode(NULL,(const xmlChar*)"iframe");
+            xmlNewProp(a,(const xmlChar*)"width",(const xmlChar*)"100%");
+            xmlNewProp(a,(const xmlChar*)"height",(const xmlChar*)"100%");
+            xmlNewProp(a,(const xmlChar*)"src",(const xmlChar*)mainpageurl.c_str());
+            xmlNewProp(a,(const xmlChar*)"name",(const xmlChar*)"chm_contentframe");
+            xmlNodeSetContent(a,(const xmlChar*)"Your browser does not support IFRAMEs");
+            xmlAddChild(div,a);
+        }
+        xmlAddChild(indexHTMLBody,div);
+    }
+
+    return true;
 }
 
 bool parseHHC(const char *path) {
@@ -264,9 +335,18 @@ int main() {
     /* now, change the OBJECTs to links */
     changeSitemapsToLinks();
 
+    printf("Main page: %s\n",mainpageurl.c_str());
+
     xmlSaveFileEnc("hhc_toc.htm",indexHTMLDoc,"UTF-8");
     xmlFreeDoc(indexHTMLDoc);
     indexHTMLDoc = NULL;
+
+    /* make another HTML that joins the TOC with the content */
+    makeFramePage();
+    xmlSaveFileEnc("hhc_index.htm",indexHTMLDoc,"UTF-8");
+    xmlFreeDoc(indexHTMLDoc);
+    indexHTMLDoc = NULL;
+
     return 0;
 }
 
