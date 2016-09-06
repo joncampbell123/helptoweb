@@ -111,6 +111,20 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
                     xmlNodePtr alink;
 
                     if (!local.empty()) {
+                        {
+                            const char *s = local.c_str();
+
+                            /* some HHCs use ../../ in the URL despite the fact that
+                             * from within a CHM that just refers to the root "directory" anyway
+                             * (Microsoft Speech API SDK) */
+                            while (!strncmp(s,"../",3)) s += 3;
+
+                            if (s != local.c_str()) {
+                                string ns = s;
+                                local = ns;
+                            }
+                        }
+
                         alink = xmlNewNode(NULL,(const xmlChar*)"a");
                         xmlNodeSetContent(alink,(const xmlChar*)name.c_str());
                         xmlNewProp(alink,(const xmlChar*)"href",(const xmlChar*)replaceLink(local).c_str());
