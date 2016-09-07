@@ -73,6 +73,7 @@ void changeSitemapsToLinks(xmlNodePtr parent_node) {
                 xp = xmlGetNoNsProp(node,(const xmlChar*)"type");
                 if (xp != NULL) {
                     type = (char*)xp;
+                    type = lowercase(type);
                     xmlFree(xp);
                 }
             }
