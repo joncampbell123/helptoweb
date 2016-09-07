@@ -228,7 +228,6 @@ void buildListOfALinks(xmlDocPtr doc,xmlNodePtr node,const char *rpath) {
 
 //                        fprintf(stderr,"ALink to '%s' as '%s' in %s\n",param_Item2.c_str(),object_id.c_str(),rpath);
 
-                        param_Item2 = lowercase(param_Item2);
                         i = anchor_alink_objects.find(object_id);
                         if (i == anchor_alink_objects.end()) {
                             anchor_alink_objects[object_id] = pair<string,xmlNodePtr>(param_Item2,node);

@@ -22,18 +22,6 @@ static void chomp(char *s) {
 FILE *cat_fp = NULL;
 FILE *ls_fp = NULL;
 
-string lowercase(string f) {
-    string r;
-    const char *s;
-
-    s = f.c_str();
-    while (*s != 0) {
-        r += tolower(*s++);
-    }
-
-    return r;
-}
-
 void lookForAnchors(xmlNodePtr node,const char *path) {
     while (node != NULL) {
         if (node->name == NULL) {
@@ -52,7 +40,7 @@ void lookForAnchors(xmlNodePtr node,const char *path) {
 
             if (!name.empty()) {
                 fprintf(cat_fp,"%s\n",path);
-                fprintf(cat_fp,"-name:%s\n",lowercase(name).c_str());
+                fprintf(cat_fp,"-name:%s\n",name.c_str());
                 fprintf(cat_fp,"\n");
             }
         }
