@@ -113,6 +113,93 @@ void removeCollapseAll(xmlNodePtr node) {
     while (node) {
         if (node->name == NULL) {
         }
+        else if (!strcasecmp((char*)node->name,"img")) {
+            string div_id,div_class,div_name;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"id");
+                if (xp != NULL) {
+                    div_id = (char*)xp;
+                    div_id = lowercase(div_id);
+                    xmlFree(xp);
+                }
+            }
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"class");
+                if (xp != NULL) {
+                    div_class = (char*)xp;
+                    div_class = lowercase(div_class);
+                    xmlFree(xp);
+                }
+            }
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"name");
+                if (xp != NULL) {
+                    div_name = (char*)xp;
+                    div_name = lowercase(div_name);
+                    xmlFree(xp);
+                }
+            }
+
+            if (div_class == "toggle" && div_name == "toggleswitch") {
+                xmlNodePtr n = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = n;
+                continue;
+            }
+        }
+        else if (!strcasecmp((char*)node->name,"div")) {
+            string div_id;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"id");
+                if (xp != NULL) {
+                    div_id = (char*)xp;
+                    div_id = lowercase(div_id);
+                    xmlFree(xp);
+                }
+            }
+
+            if (div_id == "languagespan") {
+                xmlNodePtr n = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = n;
+                continue;
+            }
+        }
+        else if (!strcasecmp((char*)node->name,"table")) {
+            string div_id;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"id");
+                if (xp != NULL) {
+                    div_id = (char*)xp;
+                    div_id = lowercase(div_id);
+                    xmlFree(xp);
+                }
+            }
+
+            if (div_id == "bottomtable") {
+                xmlNodePtr n = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = n;
+                continue;
+            }
+        }
         else if (!strcasecmp((char*)node->name,"label")) {
             string label_id;
 
