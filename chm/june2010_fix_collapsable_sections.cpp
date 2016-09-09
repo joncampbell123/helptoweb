@@ -108,6 +108,39 @@ void removeSectionDisplayNone(xmlNodePtr node) {
     }
 }
 
+// look for label elements marked "collapse all" and remove them
+void removeCollapseAll(xmlNodePtr node) {
+    while (node) {
+        if (node->name == NULL) {
+        }
+        else if (!strcasecmp((char*)node->name,"label")) {
+            string label_id;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"id");
+                if (xp != NULL) {
+                    label_id = (char*)xp;
+                    label_id = lowercase(label_id);
+                    xmlFree(xp);
+                }
+            }
+
+            if (label_id == "collapsealllabel" || label_id == "expandalllabel") {
+                xmlNodePtr n = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = n;
+                continue;
+            }
+        }
+
+        removeCollapseAll(node->children);
+        node = node->next;
+    }
+}
+
 void copytranslate(const char *src) {
     xmlNodePtr html;
     xmlDocPtr doc;
@@ -122,6 +155,7 @@ void copytranslate(const char *src) {
     html = xmlDocGetRootElement(doc);
     if (html != NULL) {
         removeSectionDisplayNone(html);
+        removeCollapseAll(html);
     }
 
     {
