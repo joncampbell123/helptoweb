@@ -113,6 +113,41 @@ void removeCollapseAll(xmlNodePtr node) {
     while (node) {
         if (node->name == NULL) {
         }
+        else if (!strcasecmp((char*)node->name,"span")) {
+            string onclick,onkeypress;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"onclick");
+                if (xp != NULL) {
+                    onclick = (char*)xp;
+                    onclick = lowercase(onclick);
+                    xmlFree(xp);
+                }
+            }
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"onkeypress");
+                if (xp != NULL) {
+                    onkeypress = (char*)xp;
+                    onkeypress = lowercase(onkeypress);
+                    xmlFree(xp);
+                }
+            }
+
+            if (!strncasecmp(onclick.c_str(),"expandcollapse",61-47)) {
+                xmlAttrPtr a = xmlHasProp(node,(const xmlChar*)"onclick");
+                if (a != NULL) xmlRemoveProp(a);
+            }
+
+            if (!strncasecmp(onkeypress.c_str(),"expandcollapse",64-50)) {
+                xmlAttrPtr a = xmlHasProp(node,(const xmlChar*)"onkeypress");
+                if (a != NULL) xmlRemoveProp(a);
+            }
+        }
         else if (!strcasecmp((char*)node->name,"a")) {
             string href;
 
