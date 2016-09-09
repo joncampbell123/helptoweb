@@ -113,6 +113,50 @@ void removeCollapseAll(xmlNodePtr node) {
     while (node) {
         if (node->name == NULL) {
         }
+        else if (!strcasecmp((char*)node->name,"a")) {
+            string href;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"href");
+                if (xp != NULL) {
+                    href = (char*)xp;
+                    href = lowercase(href);
+                    xmlFree(xp);
+                }
+            }
+
+            if (href == "#seealsotoggle") {
+                xmlNodePtr n = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = n;
+                continue;
+            }
+        }
+        else if (!strcasecmp((char*)node->name,"script")) {
+            string src;
+
+            {
+                xmlChar *xp;
+
+                xp = xmlGetNoNsProp(node,(const xmlChar*)"src");
+                if (xp != NULL) {
+                    src = (char*)xp;
+                    src = lowercase(src);
+                    xmlFree(xp);
+                }
+            }
+
+            if (src == "script.js") {
+                xmlNodePtr n = node->next;
+                xmlUnlinkNode(node);
+                xmlFreeNode(node);
+                node = n;
+                continue;
+            }
+        }
         else if (!strcasecmp((char*)node->name,"img")) {
             string div_id,div_class,div_name;
 
