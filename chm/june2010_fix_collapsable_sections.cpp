@@ -332,8 +332,6 @@ void copytranslate(const char *src) {
     }
     xmlFreeDoc(doc);
 
-    return;
-
     unlink(src);
     rename(tmp.c_str(),src);
 }
