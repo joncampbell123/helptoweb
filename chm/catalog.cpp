@@ -33,11 +33,8 @@ void lookForAnchors(xmlNodePtr node,const char *path) {
                 xmlChar *xp;
                 xp = xmlGetNoNsProp(node,(const xmlChar*)"name");
                 if (xp != NULL) {
-                    /* MSDN 6.0a documentation seems to maintain global anchors if the anchor starts with _ */
-                    if (*xp == '_') {
-                        name = (char*)xp;
-                        xmlFree(xp);
-                    }
+                    name = (char*)xp;
+                    xmlFree(xp);
                 }
             }
 
