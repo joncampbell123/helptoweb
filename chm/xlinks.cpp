@@ -95,7 +95,7 @@ void ALinksTranslate(const char *path) {
 
         string chm_path;
         {
-            map<string,string>::iterator ii = anchor2path.find(anchor_name);
+            map<string,string>::iterator ii = anchor2path.find(lowercase(anchor_name));
             if (ii == anchor2path.end()) {
                 fprintf(stderr,"No such ALink target in category for '%s' in %s\n",anchor_name.c_str(),path);
                 continue;
