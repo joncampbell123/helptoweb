@@ -307,8 +307,8 @@ int main() {
                     map<string,string>::iterator i = anchor2path.find(name);
                     if (i == anchor2path.end())
                         anchor2path[name] = path;
-//                    else
-//                        fprintf(stderr,"Ignoring duplicate named anchor %s\n",name.c_str());
+                    else
+                        fprintf(stderr,"Ignoring duplicate named anchor %s\n",name.c_str());
                 }
 
                 path.clear();
@@ -319,6 +319,13 @@ int main() {
             }
             else if (!strncmp(s,"-name:",6)) {
                 s += 6;
+                {
+                    char *e = s;
+                    while (*e != 0) {
+                        *e = tolower(*e);
+                        e++;
+                    }
+                }
                 name = s;
             }
         }
