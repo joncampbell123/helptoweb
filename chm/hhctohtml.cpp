@@ -383,6 +383,7 @@ bool makeFramePage(void) {
             xmlNewProp(a,(const xmlChar*)"height",(const xmlChar*)"100%");
             xmlNewProp(a,(const xmlChar*)"src",(const xmlChar*)"hhc_toc.htm");
             xmlNewProp(a,(const xmlChar*)"name",(const xmlChar*)"chm_tocframe");
+            xmlNewProp(a,(const xmlChar*)"id",(const xmlChar*)"chm_tocframe");
             xmlNodeSetContent(a,(const xmlChar*)"Your browser does not support IFRAMEs");
             xmlAddChild(div,a);
         }
@@ -399,6 +400,7 @@ bool makeFramePage(void) {
             xmlNewProp(a,(const xmlChar*)"height",(const xmlChar*)"100%");
             xmlNewProp(a,(const xmlChar*)"src",(const xmlChar*)mainpageurl.c_str());
             xmlNewProp(a,(const xmlChar*)"name",(const xmlChar*)"chm_contentframe");
+            xmlNewProp(a,(const xmlChar*)"id",(const xmlChar*)"chm_contentframe");
             xmlNodeSetContent(a,(const xmlChar*)"Your browser does not support IFRAMEs");
             xmlAddChild(div,a);
         }
